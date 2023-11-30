@@ -1,48 +1,37 @@
 import getDomain from "../lib/getDomain";
 
 async function getData() {
-  try {
-    const domain = getDomain();
-    const endpoint = `${domain}/api/posts`;
-    const res = await fetch(endpoint);
+  // 1 endpoint - API?
+  const domain = getDomain();
+  console.log("This is the domain: ", domain);
+  const endpoint = `${domain}/api/posts`; // -> third party api request??
+  console.log("This is the endpoint: ", endpoint);
+  const res = await fetch(endpoint, { next: { revalidate: 10 } }); // HTTP GET
+  //const res = await fetch(endpoint, { cache: "no-store" }); // HTTP GET
 
-    if (!res.ok) {
-      throw new Error("Failed to fetch data");
-    }
-
-    const contentType = res.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      return res.json();
-    } else {
-      throw new Error("Invalid content type");
-    }
-  } catch (error) {
-    throw new Error(`Error fetching data: ${error.message}`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch data");
   }
+
+  if (res.headers.get("content-type") !== "application/json") {
+    return { items: [] };
+  }
+  return res.json();
 }
 
-export default function BlogPage({ data }) {
-  const items = data?.items || [];
-
+export default async function BlogPage() {
+  const data = await getData();
+  const items = data && data.items ? [...data.items] : [];
+  console.log(items);
+  console.log(process.env.NEXT_PUBLIC_VERCEL_URL);
   return (
     <main>
-      <h1>Hello from blog page</h1>
+      <h1>Hello from blogpage</h1>
       <p>Posts:</p>
-      <ul>
-        {items.map((item, idx) => (
-          <li key={`post-${idx}`}>{item.title}</li>
-        ))}
-      </ul>
+      {items &&
+        items.map((item, idx) => {
+          return <li key={`post-${idx}`}>{item.title}</li>;
+        })}
     </main>
   );
-}
-
-export async function getServerSideProps() {
-  try {
-    const data = await getData();
-    return { props: { data } };
-  } catch (error) {
-    console.error(error);
-    return { props: { data: { items: [] } } };
-  }
 }
