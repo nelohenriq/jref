@@ -1,13 +1,15 @@
-import getDomain from "../lib/getDomain";
+import getDomain from "@/app/lib/getDomain";
+
+//import BlogCard from "./card";
+
+//import { helloWorld } from "@/app/lib/db"
 
 async function getData() {
   // 1 endpoint - API?
   const domain = getDomain();
-  console.log("This is the domain: ", domain);
   const endpoint = `${domain}/api/posts`; // -> third party api request??
-  console.log("This is the endpoint: ", endpoint);
-  const res = await fetch(endpoint, { next: { revalidate: 10 } }); // HTTP GET
-  //const res = await fetch(endpoint, { cache: "no-store" }); // HTTP GET
+  // const res = await fetch(endpoint, {next: {revalidate: 10 }}) // HTTP GET
+  const res = await fetch(endpoint, { cache: "no-store" }); // HTTP GET
 
   if (!res.ok) {
     throw new Error("Failed to fetch data");
@@ -21,17 +23,23 @@ async function getData() {
 
 export default async function BlogPage() {
   const data = await getData();
+  //const dbHello = await helloWorld()
   const items = data && data.items ? [...data.items] : [];
-  console.log(items);
-  console.log(process.env.NEXT_PUBLIC_VERCEL_URL);
   return (
     <main>
-      <h1>Hello from blogpage</h1>
+      <h1>Hello World</h1>
+      {/* <p>DB Response: {JSON.stringify(dbHello)}</p> */}
       <p>Posts:</p>
       {items &&
         items.map((item, idx) => {
-          return <li key={`post-${idx}`}>{item.title}</li>;
+          return <li key={idx}>{item.title}</li>;
+          {
+            /* <BlogCard title={item.title} key={`post-${idx}`} /> */
+          }
         })}
     </main>
   );
 }
+
+export const runtime = "edge"; // nodejs
+export const preferredRegion = "iad1";
