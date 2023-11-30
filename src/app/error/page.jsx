@@ -1,18 +1,24 @@
-"use client";
+async function getData() {
+  /*   const res = await fetch("http://localhost:3000/api/posts");
+  
+    if (!res.ok) {
+      throw new Error("Failed to fetch data");
+    }
+    return res.json(); */
+  return { items: [] };
+}
 
-import { useEffect } from "react";
-
-export default function Error({ error, reset }) {
-  useEffect(() => {
-    console.log("Error is", error);
-  }, [error]);
-
-  const retryRequestHandler = () => reset();
-
+export default async function BlogPage() {
+  const data = await getData();
+  const items = data && data.items ? [...data.items] : [];
   return (
-    <div>
-      <h2>Something went wrong!</h2>
-      <button onClick={retryRequestHandler}>retry request</button>
-    </div>
+    <main>
+      <h1>Hello from blogpage</h1>
+      <p>Posts:</p>
+      {items &&
+        items.map((item, idx) => {
+          return <li key={`post-${idx}`}>{item.title}</li>;
+        })}
+    </main>
   );
 }
